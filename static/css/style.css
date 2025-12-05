@@ -4,7 +4,7 @@
   --teal-dark: #198f73;
   --teal-light: #e6fcf7;
 }
-
+ 
 .text-teal { color: var(--teal) !important; }
 .btn-teal { background-color: var(--teal); color: #fff; border: none; }
 .btn-teal:hover { background-color: var(--teal-dark); }
@@ -14,3 +14,5 @@
 .navbar-white { background-color: #fff; }
 body { background-color: #f8f9fa; }
 .card { border-radius: 0.5rem; }
+ 
+ 
