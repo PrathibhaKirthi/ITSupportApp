@@ -3,13 +3,12 @@ import sqlite3
 import os
 
 app = Flask(__name__)
-app.secret_key = "insecure-demo-key"   
+app.secret_key = "insecure-demo-key"
 
 BASE_DIR = os.path.dirname(__file__)
 DB_DIR = os.path.join(BASE_DIR, "database")
 DB_PATH = os.path.join(DB_DIR, "tickets.db")
 os.makedirs(DB_DIR, exist_ok=True)
-
 
 def get_conn():
     conn = getattr(g, "_conn", None)
@@ -29,10 +28,24 @@ def unsafe_exec(sql):
     """INSECURE: executes raw SQL with string concatenation."""
     conn = get_conn()
     cur = conn.cursor()
-    cur.execute(sql)
-    rows = cur.fetchall()
-    conn.commit()
-    return rows
+
+    try:
+        cur.execute(sql)
+
+        # SELECT returns rows
+        if sql.strip().lower().startswith("select"):
+            rows = cur.fetchall()
+            conn.commit()
+            return rows
+
+        # INSERT/UPDATE has no rows
+        conn.commit()
+        return None
+
+    except Exception as e:
+        print("SQL ERROR:", sql)
+        print("Exception:", e)
+        raise
 
 def init_db():
     unsafe_exec("""
@@ -68,9 +81,8 @@ def index():
     q = request.args.get("q", "")
 
     if q:
-        # SQL injection vulnerability
         tickets = unsafe_exec(
-            f"SELECT id, title, description, creator, status FROM tickets WHERE title LIKE '%{q}%'"
+            f"SELECT * FROM tickets WHERE title LIKE '%{q}%'"
         )
     else:
         tickets = unsafe_exec("SELECT * FROM tickets ORDER BY id DESC")
@@ -81,7 +93,7 @@ def index():
 def register():
     if request.method == "POST":
         username = request.form.get("username", "")
-        password = request.form.get("password", "") 
+        password = request.form.get("password", "")
 
         unsafe_exec(
             f"INSERT INTO users (username, password, is_admin) VALUES ('{username}', '{password}', 0)"
@@ -95,7 +107,7 @@ def login():
         username = request.form.get("username", "")
         password = request.form.get("password", "")
 
-        # SQL Injection Vulnerability
+        # SQL Injection vulnerability
         rows = unsafe_exec(
             f"SELECT id, username, password, is_admin FROM users WHERE username = '{username}'"
         )
@@ -106,6 +118,7 @@ def login():
             session["is_admin"] = rows[0]["is_admin"]
             return redirect("/")
         return "Invalid credentials", 401
+
     return render_template("login.html")
 
 @app.route("/logout")
@@ -120,12 +133,14 @@ def new_ticket():
 
     if request.method == "POST":
         title = request.form.get("title", "")
-        description = request.form.get("description", "")  # Stored XSS vulnerability
+        description = request.form.get("description", "")
 
+        # DOUBLE QUOTES → allows <script>alert('Hacked!')</script>
         unsafe_exec(
-            f"INSERT INTO tickets (title, description, creator) VALUES ('{title}', '{description}', {session['user_id']})"
+            f'INSERT INTO tickets (title, description, creator) VALUES ("{title}", "{description}", {session["user_id"]})'
         )
         return redirect("/")
+
     return render_template("new_ticket.html")
 
 @app.route("/ticket/<int:ticket_id>", methods=["GET", "POST"])
@@ -137,11 +152,12 @@ def view_ticket(ticket_id):
     comments = unsafe_exec(f"SELECT * FROM comments WHERE ticket_id = {ticket_id}")
 
     if request.method == "POST":
-        content = request.form.get("content", "")  # Stored XSS
+        content = request.form.get("content", "")
         author = session.get("username", "Anonymous")
 
+        # DOUBLE QUOTES fix Stored XSS
         unsafe_exec(
-            f"INSERT INTO comments (ticket_id, author, content) VALUES ({ticket_id}, '{author}', '{content}')"
+            f'INSERT INTO comments (ticket_id, author, content) VALUES ({ticket_id}, "{author}", "{content}")'
         )
         return redirect(f"/ticket/{ticket_id}")
 
@@ -149,7 +165,6 @@ def view_ticket(ticket_id):
 
 @app.route("/admin", methods=["GET", "POST"])
 def admin_dashboard():
-    
     if request.method == "POST":
         tid = request.form.get("ticket_id")
         status = request.form.get("status")
@@ -161,7 +176,6 @@ def admin_dashboard():
 if __name__ == "__main__":
     with app.app_context():
         init_db()
-        # default insecure admin with plaintext password
         unsafe_exec("INSERT INTO users (username, password, is_admin) VALUES ('admin', 'admin123', 1)")
 
     app.run(debug=True)
