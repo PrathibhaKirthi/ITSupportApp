@@ -4,16 +4,15 @@ import sqlite3
 import os
 
 app = Flask(__name__)
-# Secret key for sessions
+
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "secure-default-key-12345")
 
-# Database path
+
 BASE_DIR = os.path.dirname(__file__)
 DB_DIR = os.path.join(BASE_DIR, "database")
 DB_PATH = os.path.join(DB_DIR, "tickets.db")
 os.makedirs(DB_DIR, exist_ok=True)
 
-# ----------------- Database helpers -----------------
 def get_conn():
     conn = getattr(g, "_conn", None)
     if conn is None:
@@ -65,7 +64,7 @@ def init_db():
         )
     """)
 
-# ----------------- Routes -----------------
+
 
 @app.route("/")
 def index():
@@ -163,11 +162,11 @@ def admin_dashboard():
     tickets = safe_exec("SELECT * FROM tickets ORDER BY id DESC")
     return render_template("admin.html", tickets=tickets)
 
-# ----------------- Main -----------------
+
 if __name__ == "__main__":
     with app.app_context():
         init_db()
-        # Default admin
+       
         try:
             admin_user = "admin"
             admin_pass = "secureadminpass"
