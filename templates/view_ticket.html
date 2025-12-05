@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card shadow-sm mb-3">
+  <div class="card-body">
+    <h4 class="card-title">{{ ticket['title'] }}</h4>
+    <p class="card-text">{{ ticket['description']|safe }}</p>
+    <p class="mb-0"><small>By user ID {{ ticket['creator'] }} · Status: <span class="badge bg-teal">{{ ticket['status'] }}</span></small></p>
+  </div>
+</div>
+
+<h5>Comments</h5>
+{% for c in comments %}
+  <div class="card mb-2">
+    <div class="card-body">
+      <p class="mb-1"><strong>{{ c['author'] }}</strong> says:</p>
+      <p class="mb-0">{{ c['content']|safe }}</p>
+    </div>
+  </div>
+{% else %}
+  <p class="text-muted">No comments yet.</p>
+{% endfor %}
+
+{% if session.get('username') %}
+  <div class="card mt-3 shadow-sm">
+    <div class="card-body">
+      <h5 class="mb-3">Add Comment</h5>
+      <form method="post">
+        <div class="mb-3">
+          <textarea name="content" class="form-control" rows="3" required></textarea>
+        </div>
+        <button class="btn btn-teal">Post Comment</button>
+      </form>
+    </div>
+  </div>
+{% else %}
+  <p class="text-muted mt-3">Please login to comment.</p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3 class="mb-0">Recent Tickets</h3>
+  <form class="d-flex" method="get" action="{{ url_for('index') }}">
+    <input class="form-control me-2" name="q" placeholder="Search by title" value="{{ q }}">
+    <button class="btn btn-outline-teal">Search</button>
+  </form>
+</div>
+
+<div class="row">
+  <div class="col-md-8">
+    {% for t in tickets %}
+      <div class="card mb-3 shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">{{ t['title'] }}</h5>
+          <!-- INSECURE: rendering description as raw HTML for demo -->
+          <p class="card-text text-muted">{{ t['description']|safe }}</p>
+          <p class="mb-0"><small>By user ID {{ t['creator'] }} · Status: <span class="badge bg-teal">{{ t['status'] }}</span></small></p>
+          <a href="{{ url_for('view_ticket', ticket_id=t['id']) }}" class="stretched-link"></a>
+        </div>
+      </div>
+    {% else %}
+      <p class="text-muted">No tickets yet.</p>
+    {% endfor %}
+  </div>
+
+  <div class="col-md-4">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h5>Quick Actions</h5>
+        {% if session.get('username') %}
+          <a href="{{ url_for('new_ticket') }}" class="btn btn-teal w-100">Create Ticket</a>
+        {% else %}
+          <p class="text-muted">Please login to create tickets.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

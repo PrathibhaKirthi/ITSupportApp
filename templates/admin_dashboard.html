@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block content %}
+<h3>Admin Dashboard</h3>
+<div class="table-responsive">
+  <table class="table table-striped shadow-sm">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Title</th>
+        <th>Creator</th>
+        <th>Status</th>
+        <th>Update</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for t in tickets %}
+      <tr>
+        <td>{{ t['id'] }}</td>
+        <td>{{ t['title'] }}</td>
+        <td>{{ t['creator'] }}</td>
+        <td>{{ t['status'] }}</td>
+        <td>
+          <form method="post" class="d-flex gap-2">
+            <input type="hidden" name="ticket_id" value="{{ t['id'] }}">
+            <select name="status" class="form-select form-select-sm">
+              <option {% if t['status']=='Open' %}selected{% endif %}>Open</option>
+              <option {% if t['status']=='In Progress' %}selected{% endif %}>In Progress</option>
+              <option {% if t['status']=='Closed' %}selected{% endif %}>Closed</option>
+            </select>
+            <button class="btn btn-sm btn-teal">Update</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
