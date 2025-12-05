@@ -3,14 +3,14 @@ import sqlite3
 import os
 
 app = Flask(__name__)
-app.secret_key = "insecure-demo-key"   # intentionally insecure
+app.secret_key = "insecure-demo-key"   
 
 BASE_DIR = os.path.dirname(__file__)
 DB_DIR = os.path.join(BASE_DIR, "database")
 DB_PATH = os.path.join(DB_DIR, "tickets.db")
 os.makedirs(DB_DIR, exist_ok=True)
 
-# ----------------- Database helpers -----------------
+
 def get_conn():
     conn = getattr(g, "_conn", None)
     if conn is None:
@@ -63,7 +63,6 @@ def init_db():
         )
     """)
 
-# ----------------- Routes -----------------
 @app.route("/")
 def index():
     q = request.args.get("q", "")
@@ -82,7 +81,7 @@ def index():
 def register():
     if request.method == "POST":
         username = request.form.get("username", "")
-        password = request.form.get("password", "")  # STORED IN PLAINTEXT
+        password = request.form.get("password", "") 
 
         unsafe_exec(
             f"INSERT INTO users (username, password, is_admin) VALUES ('{username}', '{password}', 0)"
@@ -150,7 +149,7 @@ def view_ticket(ticket_id):
 
 @app.route("/admin", methods=["GET", "POST"])
 def admin_dashboard():
-    # ❌ Insecure: NO admin check!
+    
     if request.method == "POST":
         tid = request.form.get("ticket_id")
         status = request.form.get("status")
@@ -159,7 +158,6 @@ def admin_dashboard():
     tickets = unsafe_exec("SELECT * FROM tickets ORDER BY id DESC")
     return render_template("admin.html", tickets=tickets)
 
-# ----------------- Main -----------------
 if __name__ == "__main__":
     with app.app_context():
         init_db()
