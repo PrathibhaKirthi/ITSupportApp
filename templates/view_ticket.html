@@ -1,10 +1,26 @@
 {% extends "base.html" %}
 {% block content %}
+
+<!-- Success popup if comment was posted -->
+{% if success %}
+<script>
+    window.onload = function () {
+        alert("Your comment has been posted successfully!");
+    };
+</script>
+{% endif %}
+
 <div class="card shadow-sm mb-3">
   <div class="card-body">
     <h4 class="card-title">{{ ticket['title'] }}</h4>
     <p class="card-text">{{ ticket['description']|safe }}</p>
-    <p class="mb-0"><small>By user ID {{ ticket['creator'] }} · Status: <span class="badge bg-teal">{{ ticket['status'] }}</span></small></p>
+    <p class="mb-0">
+      <small>
+        By user ID {{ ticket['creator'] }}
+        · Status:
+        <span class="badge bg-teal">{{ ticket['status'] }}</span>
+      </small>
+    </p>
   </div>
 </div>
 
@@ -35,4 +51,5 @@
 {% else %}
   <p class="text-muted mt-3">Please login to comment.</p>
 {% endif %}
+
 {% endblock %}
